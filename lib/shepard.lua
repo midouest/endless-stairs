@@ -25,27 +25,36 @@ end
 
 -- an amplitude function that rises linearly towards the peak pitch and descends
 -- linearly away from the peak pitch
---
 -- @param pitch_min minimum pitch in semitones
 -- @param pitch_max maximum pitch in semitones
 -- @param pitch pitch to transform in semitones
---
 -- @return an amplitude for the given pitch
 function Shepard.lin_amp(pitch_min, pitch_max, pitch)
-  local peak = (pitch_max - pitch_min) / 2
-  return 1 - math.abs(pitch - peak) / peak
+  local half_width = (pitch_max - pitch_min) / 2
+  local peak = half_width + pitch_min
+  return 1 - math.abs(pitch - peak) / half_width
 end
 
 -- a raised cosine amplitude function
---
 -- @param pitch_min minimum pitch in semitones
 -- @param pitch_max maximum pitch in semitones
 -- @param pitch pitch to transform in semitones
---
 -- @return an amplitude for the given pitch
 function Shepard.cos_amp(pitch_min, pitch_max, pitch)
-  local peak = (pitch_max - pitch_min) / 2
-  return (1 + math.cos(math.pi * math.abs(pitch - peak) / peak)) / 2
+  local half_width = (pitch_max - pitch_min) / 2
+  local peak = half_width + pitch_min
+  return (1 + math.cos(math.pi * math.abs(pitch - peak) / half_width)) / 2
+end
+
+-- a gaussian bell amplitude function
+-- @param pitch_min minimum pitch in semitones
+-- @param pitch_max maximum pitch in semitones
+-- @param bell_width gaussian bell width in semitones
+-- @param pitch pitch to transform in semitones
+-- @return an amplitude for the given pitch
+function Shepard.gauss_amp(pitch_min, pitch_max, bell_width, pitch)
+  local peak = (pitch_max + pitch_min) / 2
+  return math.exp(-0.5 * ((pitch - peak) / bell_width)^2)
 end
 
 return Shepard

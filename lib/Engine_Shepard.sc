@@ -26,7 +26,18 @@ Engine_Shepard : CroneEngine {
 
     context.server.sync;
 
-    voices = Array.fill(6, { Synth.new("Shepard") });
+    voices = Array.fill(40, { Synth.new("Shepard") });
+
+    this.addCommand(\voice_off, "i", { |msg|
+      var voice = voices[msg[1]];
+      voice.set(\level, 0);
+    });
+
+    this.addCommand(\all_notes_off, "", {
+      voices.do({ arg voice;
+        voice.set(\level, 0);
+      });
+    });
 
     this.addCommand(\play_voice, "iff", { |msg|
       var voice = voices[msg[1]];
