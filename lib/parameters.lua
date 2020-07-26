@@ -7,7 +7,7 @@ Parameters.ids = {
   'voice_spread',
   'voice_detune',
   'time_interval',
-  -- 'gliss',
+  'gliss',
   'pitch_interval',
   'amp_curve',
   'gaussian_width',
@@ -62,36 +62,36 @@ function Parameters.init()
     name='voice spread',
     min=0,
     max=127,
-    default=21
+    default=24
   }
 
   params:add{
     type='control',
     id='voice_detune',
     name='voice detune',
-    controlspec=controlspec.new(0, 100, 'lin', 1, 16, 'c')
+    controlspec=controlspec.new(0, 100, 'lin', 1, 0, 'c')
   }
 
   params:add{
     type='control',
     id='time_interval',
     name='time interval',
-    controlspec=controlspec.new(13, 1000, 'exp', 0, 13, 'ms')
+    controlspec=controlspec.new(13, 1000, 'exp', 0, 133, 'ms')
   }
 
-  -- params:add{
-  --   type='option',
-  --   id='gliss',
-  --   name='glissando',
-  --   options={'no', 'yes'},
-  --   default=2,
-  -- }
+  params:add{
+    type='option',
+    id='gliss',
+    name='glissando',
+    options={'no', 'yes'},
+    default=1,
+  }
 
   params:add{
     type='control',
     id='pitch_interval',
     name='pitch interval',
-    controlspec=controlspec.new(-100, 100, 'lin', 0, 2, 'c')
+    controlspec=controlspec.new(-100, 100, 'lin', 0, 100, 'c')
   }
 
   params:add{
@@ -153,6 +153,40 @@ function Parameters.init()
     options={'off', 'on'},
     default=2
   }
+
+  params:add_separator('pattern')
+
+  params:add_group('data', 64 * 3 + 1)
+
+  params:add{
+    type='number',
+    id='pattern_length',
+    name='length',
+    min=1,
+    max=64,
+    step=1,
+    default=4,
+  }
+
+  for i = 1, 64 do
+    params:add_separator(i)
+    params:add{
+      type='number',
+      id='offset'..i,
+      name='offset',
+      min=-127,
+      max=127,
+      step=1,
+      default=1,
+    }
+    params:add{
+      type='option',
+      id='rest'..i,
+      name='rest',
+      options={'off', 'on'},
+      default=1,
+    }
+  end
 end
 
 return Parameters
