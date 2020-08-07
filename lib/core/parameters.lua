@@ -209,9 +209,11 @@ function Parameters.init()
       id='rest'..i,
       name='rest',
       options={'off', 'on'},
-      default=Parameters.OFF,
+      default=Parameters.ON,
     }
   end
+
+  params:set('rest1', Parameters.OFF)
 end
 
 return Parameters
