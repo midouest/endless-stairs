@@ -1,6 +1,6 @@
 -- endless-stairs
 -- a shepard tone generator
--- v1.0.0 @midouest
+-- v1.0.1 @midouest
 --
 -- E2 = change param id
 -- E3 = change param value
@@ -78,8 +78,7 @@ function handle_grid_key(x, y, z)
       local time = os.time()
       if double_tap_step ~= nil and double_tap_time ~= nil then
         local dt = os.difftime(time, double_tap_time)
-        print(dt)
-        if dt < 1 then
+        if dt < 1 and index == double_tap_step then
           params:set('pattern_start', index)
           params:set('pattern_end', index)
         end
