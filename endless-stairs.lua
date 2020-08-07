@@ -1,6 +1,6 @@
 -- endless-stairs
 -- a shepard tone generator
--- v0.1.0 @midouest
+-- v1.0.0 @midouest
 --
 -- E2 = change param id
 -- E3 = change param value
