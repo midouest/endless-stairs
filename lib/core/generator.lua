@@ -1,19 +1,14 @@
 local MusicUtil = require 'musicutil'
 
-local Shepard = include('lib/shepard')
+local Shepard = include('lib/core/shepard')
+local Object = include('lib/core/object')
 
-local Generator = {}
-Generator.__index = Generator
-
-function Generator.new()
-  local gen = setmetatable({
-    step = 1,
-    pitch = 60,
-    voices = {},
-    clock_id = nil
-  }, Generator)
-  return gen
-end
+local Generator = Object:new{
+  step=1,
+  pitch=60,
+  voices={},
+  clock_id=nil
+}
 
 function Generator:start()
   self.clock_id = clock.run(function() self:run() end)
@@ -46,8 +41,8 @@ function Generator:run()
         self.pitch = self.pitch + offset
       end
       self.step = self.step + 1
-      if self.step > params:get('pattern_length') then
-        self.step = 1
+      if self.step > params:get('pattern_end') then
+        self.step = params:get('pattern_start')
       end
     else
       self:tick()

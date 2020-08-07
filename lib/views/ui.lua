@@ -50,7 +50,7 @@ end
 --     end
 --     screen.text_center(offset)
 --   end
-  
+
 --   screen.level(15)
 --   screen.move(0, 56)
 --   screen.text('edit: '..edit_step)

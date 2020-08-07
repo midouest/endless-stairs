@@ -15,6 +15,17 @@ Parameters.ids = {
   'decay',
 }
 
+Parameters.OFF = 1
+Parameters.ON = 2
+
+function Parameters.option_to_bool(option)
+  return option == Parameters.ON
+end
+
+function Parameters.bool_to_option(bool)
+  return bool and Parameters.ON or Parameters.OFF
+end
+
 function Parameters.init()
   params:add_separator('general')
 
@@ -51,7 +62,7 @@ function Parameters.init()
     id='num_voices',
     name='voices',
     min=1,
-    max=40,
+    max=128,
     step=1,
     default=6,
   }
@@ -88,10 +99,14 @@ function Parameters.init()
   }
 
   params:add{
-    type='control',
+    type='number',
     id='pitch_interval',
     name='pitch interval',
-    controlspec=controlspec.new(-100, 100, 'lin', 0, 100, 'c')
+    min=-100,
+    max=100,
+    step=1,
+    default=100,
+    formatter=function(p) return tostring(p:get())..' c' end
   }
 
   params:add{
@@ -126,7 +141,7 @@ function Parameters.init()
     id='engine_enabled',
     name='enabled',
     options={'off', 'on'},
-    default=2
+    default=Parameters.ON
   }
 
   params:add{
@@ -134,7 +149,7 @@ function Parameters.init()
     id='drone',
     name='drone',
     options={'off', 'on'},
-    default=1,
+    default=Parameters.OFF,
   }
 
   params:add{
@@ -151,17 +166,27 @@ function Parameters.init()
     id='jf_enabled',
     name='enabled',
     options={'off', 'on'},
-    default=2
+    default=Parameters.ON
   }
 
   params:add_separator('pattern')
 
-  params:add_group('data', 64 * 3 + 1)
+  params:add_group('data', 64 * 3 + 2)
 
   params:add{
     type='number',
-    id='pattern_length',
-    name='length',
+    id='pattern_start',
+    name='start',
+    min=1,
+    max=64,
+    step=1,
+    default=1,
+  }
+
+  params:add{
+    type='number',
+    id='pattern_end',
+    name='end',
     min=1,
     max=64,
     step=1,
@@ -184,7 +209,7 @@ function Parameters.init()
       id='rest'..i,
       name='rest',
       options={'off', 'on'},
-      default=1,
+      default=Parameters.OFF,
     }
   end
 end

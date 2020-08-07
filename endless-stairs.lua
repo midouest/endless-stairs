@@ -7,18 +7,18 @@
 
 engine.name = "Shepard"
 
-local Parameters = include('lib/parameters')
-local UI = include('lib/ui')
-local Grid = include('lib/grid')
-local Generator = include('lib/generator')
+local Parameters = include('lib/core/parameters')
+local Generator = include('lib/core/generator')
+local UI = include('lib/views/ui')
+local Grid = include('lib/views/grid')
 
 local g = nil
 local gen = nil
 local state = {
   edit_step = 1,
-  is_editing_length = false,
   param_id = 4,
-  ui_metro = nil
+  ui_metro = nil,
+  begin_step=nil,
 }
 
 function init()
@@ -78,27 +78,38 @@ function enc(n, d)
 end
 
 function handle_grid_key(x, y, z)
-  if y == 8 then
-    local offset = params:get('offset'..state.edit_step)
-    if x == 1 and z == 1 then
-      params:set('offset'..state.edit_step, -offset)
-    elseif x == 15 and z == 1 then
-      local is_rest = params:get('rest'..state.edit_step)
-      params:set('rest'..state.edit_step, 3 - is_rest)
-    elseif x == 16 then
-      state.is_editing_length = z == 1
-    elseif z == 1 then
-      local sign = offset < 0 and -1 or 1
-      params:set('offset'..state.edit_step, sign * (x - 2))
+  if (y == 7 or y == 8) and z == 1 then
+    local offset = Grid.KEYBOARD_PATTERN[y - 6][x]
+    if offset == nil then
+      return
     end
-  elseif state.is_editing_length and z == 1 and y <= 4 then
-    local new_length = Grid.coord_to_index(x, y, 16)
-    params:set('pattern_length', new_length)
-  elseif z == 1 then
-    local index = Grid.coord_to_index(x, y, 16)
-    local length = params:get('pattern_length')
-    if index <= length then
-      state.edit_step = index
+
+    local prev_offset = params:get('offset'..state.edit_step)
+    local prev_rest = params:get('rest'..state.edit_step)
+    if offset == prev_offset then
+      params:set('rest'..state.edit_step, 3 - prev_rest)
+    else
+      params:set('offset'..state.edit_step, offset)
+      params:set('rest'..state.edit_step, 1)
+    end
+  elseif y >= 1 and y <= 4 then
+    if z == 1 then
+      local index = Grid.coord_to_index(x, y, 16)
+      if begin_step ~= nil then
+        local pattern_start = math.min(begin_step, index)
+        local pattern_end = math.max(begin_step, index)
+
+        params:set('pattern_start', pattern_start)
+        params:set('pattern_end', pattern_end)
+        begin_step = nil
+      else
+        begin_step = index
+        if index <= 64 then
+          state.edit_step = index
+        end
+      end
+    elseif z == 0 then
+      begin_step = nil
     end
   end
 end
@@ -122,6 +133,6 @@ function redraw()
   screen.update()
 
   g:all(0)
-  Grid.redraw_pattern_page(g, gen.step, state.edit_step, state.is_editing_length)
+  Grid.redraw_pattern_page(g, gen.step, state.edit_step)
   g:refresh()
 end
