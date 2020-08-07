@@ -14,12 +14,14 @@ local Grid = include('lib/views/grid')
 
 local g = nil
 local gen = nil
-local state = {
-  edit_step = 1,
-  param_id = 4,
-  ui_metro = nil,
-  begin_step=nil,
-}
+
+-- state
+local edit_step = 1
+local param_id = 4
+local ui_metro = nil
+local begin_step=nil
+local double_tap_step=nil
+local double_tap_time=nil
 
 function init()
   crow.ii.pullup(true)
@@ -44,37 +46,15 @@ end
 function cleanup()
   gen:stop()
   crow.ii.jf.mode(0)
-  -- crow.ii.pullup(false)
 end
 
 function enc(n, d)
-  -- if params:get('gliss') == 1 then
-  --   -- todo
-  --   if n == 1 then
-  --     local new_length = util.clamp(#pattern + d, 1, 64)
-  --     if new_length > #pattern then
-  --       for i = #pattern + 1, new_length do
-  --         table.insert(pattern, 0)
-  --       end
-  --     elseif new_length < #pattern then
-  --       for i = new_length + 1, #pattern do
-  --         table.remove(pattern)
-  --       end
-  --     end
-  --   elseif n == 2 then
-  --     edit_step = (edit_step + d - 1) % #pattern + 1
-  --   elseif n == 3 then
-  --     local offset = pattern[edit_step]
-  --     pattern[edit_step] = offset + d
-  --   end
-  -- else
   if n == 2 then
-    state.param_id = (state.param_id + d - 1) % #Parameters.ids + 1
+    param_id = (param_id + d - 1) % #Parameters.ids + 1
   elseif n == 3 then
-    local param_id = Parameters.ids[state.param_id]
-    params:delta(param_id, d)
+    local id = Parameters.ids[param_id]
+    params:delta(id, d)
   end
-  -- end
 end
 
 function handle_grid_key(x, y, z)
@@ -84,17 +64,29 @@ function handle_grid_key(x, y, z)
       return
     end
 
-    local prev_offset = params:get('offset'..state.edit_step)
-    local prev_rest = params:get('rest'..state.edit_step)
+    local prev_offset = params:get('offset'..edit_step)
+    local prev_rest = params:get('rest'..edit_step)
     if offset == prev_offset then
-      params:set('rest'..state.edit_step, 3 - prev_rest)
+      params:set('rest'..edit_step, 3 - prev_rest)
     else
-      params:set('offset'..state.edit_step, offset)
-      params:set('rest'..state.edit_step, 1)
+      params:set('offset'..edit_step, offset)
+      params:set('rest'..edit_step, 1)
     end
   elseif y >= 1 and y <= 4 then
     if z == 1 then
       local index = Grid.coord_to_index(x, y, 16)
+      local time = os.time()
+      if double_tap_step ~= nil and double_tap_time ~= nil then
+        local dt = os.difftime(time, double_tap_time)
+        print(dt)
+        if dt < 1 then
+          params:set('pattern_start', index)
+          params:set('pattern_end', index)
+        end
+        double_tap_time = nil
+        double_tap_step = nil
+      end
+
       if begin_step ~= nil then
         local pattern_start = math.min(begin_step, index)
         local pattern_end = math.max(begin_step, index)
@@ -103,9 +95,11 @@ function handle_grid_key(x, y, z)
         params:set('pattern_end', pattern_end)
         begin_step = nil
       else
+        double_tap_step = index
+        double_tap_time = time
         begin_step = index
         if index <= 64 then
-          state.edit_step = index
+          edit_step = index
         end
       end
     elseif z == 0 then
@@ -118,14 +112,14 @@ function redraw()
   screen.clear()
 
   screen.level(15)
-  local param_id = Parameters.ids[state.param_id]
+  local id = Parameters.ids[param_id]
 
   screen.move(0, 8)
-  screen.text(param_id)
+  screen.text(id)
   screen.stroke()
 
   screen.move(0, 16)
-  screen.text(params:string(param_id))
+  screen.text(params:string(id))
   screen.stroke()
 
   UI.redraw_visualizer(gen.voices)
@@ -133,6 +127,6 @@ function redraw()
   screen.update()
 
   g:all(0)
-  Grid.redraw_pattern_page(g, gen.step, state.edit_step)
+  Grid.redraw_pattern_page(g, gen.step, edit_step)
   g:refresh()
 end

@@ -41,8 +41,9 @@ function Generator:run()
         self.pitch = self.pitch + offset
       end
       self.step = self.step + 1
-      if self.step > params:get('pattern_end') then
-        self.step = params:get('pattern_start')
+      local start = params:get('pattern_start')
+      if self.step < start or self.step > params:get('pattern_end') then
+        self.step = start
       end
     else
       self:tick()
